@@ -47,9 +47,9 @@ class LearningAgent(Agent):
         if testing :
             self.epsilon, self.alpha = 0.0, 0.0
         else :
-            self.epsilon -= 0.05
+            #self.epsilon -= 0.05
             #self.epsilon = math.exp(-1 * self.alpha * self.trials)
-            #self.epsilon = math.pow(self.alpha, self.trials)
+            self.epsilon = math.pow(self.alpha, self.trials)
             #self.epsilon = math.pow(self.trials, -2)
             #self.epsilon = math.cos(self.alpha * self.trials)
 
@@ -92,26 +92,10 @@ class LearningAgent(Agent):
         ###########
         # Calculate the maximum Q-value of all actions for a given state
 
-        #print("executing {0} times".format(self.i))
-        #self.i += 1
+
         maxQ = max(self.Q[state].values())
 
-        #best_action.append(max(self.Q[state], key=lambda ba:ba[1]))
-        #print("maxQ {0}".format(self.Q[state].items()))
-
-        actions_with_same_values = {} # this is to create a dictionary of items with the same Q-value
-        for eachState in self.Q[state].items():
-            if eachState[1] not in actions_with_same_values.keys():
-                actions_with_same_values[eachState[1]] = []
-            actions_with_same_values[eachState[1]].append(eachState[0])
-
-        #print("actions {0}".format(actions_with_same_values))
-        # best_actions is a list of actions with the highest Q value for a given state
-        best_actions = actions_with_same_values[max(actions_with_same_values)]
-
-        #print("bestactions = {0}".format(best_actions))
-
-        return maxQ,random.choice(best_actions)
+        return maxQ
 
 
     def createQ(self, state):
@@ -152,7 +136,18 @@ class LearningAgent(Agent):
             if self.epsilon > random.random():
                 action = random.choice(self.valid_actions)
             else :
-                action = self.get_maxQ(state)[1]
+                #best_action.append(max(self.Q[state], key=lambda ba:ba[1]))
+                #print("maxQ {0}".format(self.Q[state].items()))
+                actions_with_same_values = {} # this is to create a dictionary of items with the same Q-value
+                for eachState in self.Q[state].items():
+                    if eachState[1] not in actions_with_same_values.keys():
+                        actions_with_same_values[eachState[1]] = []
+                    actions_with_same_values[eachState[1]].append(eachState[0])
+
+                #print("actions {0}".format(actions_with_same_values))
+                # best_actions is a list of actions with the highest Q value for a given state
+                best_actions = actions_with_same_values[max(actions_with_same_values)]
+                action = random.choice(best_actions)
         return action
 
 
@@ -206,13 +201,13 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent)
+    agent = env.create_agent(LearningAgent, learning=True, epsilon=1.0,alpha=0.999)
 
     ##############
     # Follow the driving agent
     # Flags:
     #   enforce_deadline - set to True to enforce a deadline metric
-    env.set_primary_agent(agent, enforce_deadline=True)
+    env.set_primary_agent(agent, enforce_deadline=False)
 
     ##############
     # Create the simulation
@@ -221,7 +216,7 @@ def run():
     #   display      - set to False to disable the GUI if PyGame is enabled
     #   log_metrics  - set to True to log trial and simulation results to /logs
     #   optimized    - set to True to change the default log file name
-    sim = Simulator(env, update_delay=0.01, log_metrics=True)
+    sim = Simulator(env, update_delay=0.01, log_metrics=True,optimized=True)
 
     ##############
     # Run the simulator
